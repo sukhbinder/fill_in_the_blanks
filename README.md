@@ -19,3 +19,28 @@ optional arguments:
   -h, --help    show this help message and exit
 
 ```
+
+# To add questesions for your child
+
+```bash
+
+fillin add  barun.csv -q "__blank__ is the highest mountain in the world" -a "mt. everest"
+
+```
+All questions will be stored in ``barun.csv`` for the avobe command.
+
+Tip: try to keep one or two word answer. Not more than that.
+
+# To review.
+
+```bash
+
+fillin review barun.csv
+
+```
+
+``barun.csv`` is the file tat all questions have been added.
+
+Tip: Create a batch file, so the kid can just click on the batch file and practice the questions if any.
+
+
