@@ -20,18 +20,18 @@ optional arguments:
 
 ```
 
-# To add Questions for your child
+## To add Questions for your child
 
 ```bash
 
 fillin add  barun.csv -q "__blank__ is the highest mountain in the world" -a "mt. everest"
 
 ```
-All questions will be stored in ``barun.csv`` for the avobe command.
+All questions will be stored in ``barun.csv`` for the above command.
 
 **Tip**: Try to keep one or two word answer. Not more than that.
 
-# To review.
+## To Review.
 
 ```bash
 
