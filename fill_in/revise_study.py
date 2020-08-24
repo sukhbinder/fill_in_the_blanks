@@ -108,7 +108,6 @@ def format_timedelta(delta):
 
 def do_review_one(word):
     while True:
-        print("Answer: ")
         _say_question(word.question)
         answer_text = ask("")
         if answer_text.strip().lower() == word.answer.lower():
@@ -127,6 +126,7 @@ def _change_question(question):
     return question.replace("___", "dash")
 
 def _say_question(word,sleepseconds=0.0):
+    print("\n{} : ".format(word), end = "")
     question = _change_question(word)
     _say(question, sleepseconds)
     _say("The Question is {}".format(question), sleepseconds=sleepseconds)
