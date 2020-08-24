@@ -123,11 +123,13 @@ def do_review_one(word):
         word.update_due_date()
         return word, is_correct, answer_text
 
-
+def _change_question(question):
+    return question.replace("___", "dash")
 
 def _say_question(word,sleepseconds=0.0):
-    _say(word, sleepseconds)
-    _say("The Question is {}".format(word), sleepseconds=sleepseconds)
+    question = _change_question(word)
+    _say(question, sleepseconds)
+    _say("The Question is {}".format(question), sleepseconds=sleepseconds)
             
 def do_review(wordslist):
     np.random.shuffle(wordslist)
