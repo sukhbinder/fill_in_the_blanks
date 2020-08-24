@@ -13,25 +13,52 @@ fillin -h
 Study Revision with Spaced Repetetion for Kids on Mac and windows.
 
 positional arguments:
-  {add,review}
+  {add,review, import}
 
 optional arguments:
   -h, --help    show this help message and exit
 
 ```
 
-## To add Questions for your child
+# To add Questions in bulk
+
+Create a text file like the following
+
+
+``ques.txt``
+```text
+___ barks?,dog
+___ mewes?,cat
+Are you a _____? ,human
+
+```
+
+And then use this command import the questions.
 
 ```bash
 
-fillin add  barun.csv -q "__blank__ is the highest mountain in the world" -a "mt. everest"
+fillin import science.csv quest.txt
+
+```
+All questions will be stored in ``science.csv`` with the above command.
+
+**Tip**: Try to keep one or two word answer. Not more than that. Use ``___``  (triple underscore ) for the blanks?
+
+
+# To add single Question for your child
+
+```bash
+
+fillin add  barun.csv -q "____ is the highest mountain in the world" -a "mt. everest"
 
 ```
 All questions will be stored in ``barun.csv`` for the above command.
 
 **Tip**: Try to keep one or two word answer. Not more than that.
 
-## To Review.
+
+
+# To Review.
 
 ```bash
 
