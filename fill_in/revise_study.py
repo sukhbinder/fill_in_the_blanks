@@ -192,7 +192,18 @@ def review_com(args):
         print_next_review_day(args.word_file)
     else:
         print_next_review_day(args.word_file)
-    
+
+def import_com(args):
+    data = pd.read_csv(args.text_file, header=None)
+    wordslist = get_words(args.word_file)
+
+    for row in data.iterrows():
+        word = Card(row[1][0].strip(), row[1][1].strip())
+        wordslist.append(word)
+    save_words(wordslist, args.word_file)
+    print("Question in {} imported into {} ".format(args.text_file, args.word_file))
+
+
 def main():
     parser = argparse.ArgumentParser(description="Study Revision with Spaced Repetetion for Kids on Mac and windows.")
     subparser = parser.add_subparsers()
@@ -201,9 +212,12 @@ def main():
     add_p.add_argument("word_file", type=str, default="words.csv")
     add_p.add_argument("-q", type=str, help="Question ")
     add_p.add_argument("-ans", type=str, help ="Answer here")
-    
     add_p.set_defaults(func=add_com)
 
+    import_p = subparser.add_parser("import")
+    import_p.add_argument("word_file", type=str, default="words.csv", help="Where you want to add questions")
+    import_p.add_argument("text_file", type=str, help="File with question and answers per line seperated by , use ___ as blank  ")
+    import_p.set_defaults(func=import_com)
     
     review_p = subparser.add_parser("review")
     review_p.add_argument("word_file", type=str, default="words.csv")
