@@ -4,6 +4,8 @@ import argparse
 import os
 import time
 import six
+import colorama
+
 
 from datetime import datetime, timedelta
 
@@ -22,18 +24,21 @@ else:
         time.sleep(sleepseconds)
 
 
-CORRECT_RES = ["Thats Correct", "Correct", "Thats right. Way to go.", "Good Job.", "Excellent", "Thats correct. Good Effort"]
+CORRECT_RES = ["Thats Fantastic Effort", "Wow that's good", "Thats right. Way to go.", "Good Job.", "Excellent", "Thats correct. Good Effort"]
+
 
 def get_words_to_reveiw(wordlist):
     now = datetime.now()
     selected_word = [word for word in wordlist if word.due_date < now]
-
+    no_words = len(selected_word)
     # if more than 15 words, show only 10-15 words
-    if len(selected_word) > 15:
+    if no_words > 15:
         selected_word = selected_word[:np.random.randint(10,16)]
     if not selected_word:
         print("Nothing to review.")
         _say("Nothing to review.")
+    else:
+        print("{} words selected out of {}".format(len(selected_word), no_words))
     return selected_word
 
 THESHOLDS = [timedelta(seconds=0), timedelta(hours=1), timedelta(hours=3), timedelta(hours=7), timedelta(hours=24) , timedelta(days=2), timedelta(days=3), timedelta(days=7), timedelta(days=14), timedelta(days=30), timedelta(days=90)]
