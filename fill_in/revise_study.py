@@ -27,6 +27,10 @@ CORRECT_RES = ["Thats Correct", "Correct", "Thats right. Way to go.", "Good Job.
 def get_words_to_reveiw(wordlist):
     now = datetime.now()
     selected_word = [word for word in wordlist if word.due_date < now]
+
+    # if more than 15 words, show only 10-15 words
+    if len(selected_word) > 15:
+        selected_word = selected_word[:np.random.randint(10,16)]
     if not selected_word:
         print("Nothing to review.")
         _say("Nothing to review.")
@@ -198,7 +202,6 @@ def review_com(args):
 def import_com(args):
     data = pd.read_csv(args.text_file, header=None)
     wordslist = get_words(args.word_file)
-
     for row in data.iterrows():
         word = Card(row[1][0].strip(), row[1][1].strip())
         wordslist.append(word)
