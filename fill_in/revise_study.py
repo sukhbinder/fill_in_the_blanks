@@ -161,6 +161,7 @@ def do_review(wordslist):
 def get_words(fname="words.csv"):
     if os.path.exists(fname):
         df = pd.read_csv(fname, infer_datetime_format=True, parse_dates=["due_date"])
+        df = df.sort_values(by="due_date", ascending=False) 
         wordlists = [Card(row.question, row.answer,  num=row.num, due_date=row.due_date, active=row.active) for _, row in df.iterrows()]
     else:
         wordlists=[]
