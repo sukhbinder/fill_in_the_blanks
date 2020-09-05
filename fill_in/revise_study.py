@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 
 if os.name == "nt":
     import win32com.client as wincl
+
     def _say(sentence, sleepseconds=0.5):
         try:
             speaker = wincl.Dispatch("SAPI.SpVoice")
@@ -24,7 +25,10 @@ else:
         time.sleep(sleepseconds)
 
 
-CORRECT_RES = ["Thats Fantastic Effort", "Wow that's good", "Thats right. Way to go.", "Good Job.", "Excellent", "Thats correct. Good Effort"]
+CORRECT_RES = ["Thats Fantastic Effort", "Wow thats good",
+               "Thats right. Way to go.", "Good Job.", "Excellent", "Thats correct. Good Effort"]
+INCORRECT_RES = ["Thats Incorrect",
+                 "Try Harder", "Focus", "Are you kidding me"]
 
 
 def get_words_to_reveiw(wordlist):
@@ -33,16 +37,18 @@ def get_words_to_reveiw(wordlist):
     no_words = len(selected_word)
     # if more than 15 words, show only 10-15 words
     if no_words > 15:
-        selected_word = selected_word[:np.random.randint(10,16)]
+        selected_word = selected_word[:np.random.randint(10, 16)]
     if not selected_word:
         print("Nothing to review.")
         _say("Nothing to review.")
     else:
-        print("{} words selected out of {}".format(len(selected_word), no_words))
+        print("{} words selected out of {}".format(
+            len(selected_word), no_words))
     return selected_word
 
-THESHOLDS = [timedelta(seconds=0), timedelta(hours=1), timedelta(hours=3), timedelta(hours=7), timedelta(hours=24) , timedelta(days=2), timedelta(days=3), timedelta(days=7), timedelta(days=14), timedelta(days=30), timedelta(days=90)]
 
+THESHOLDS = [timedelta(seconds=120), timedelta(hours=1), timedelta(hours=3), timedelta(hours=7), timedelta(hours=24), timedelta(
+    days=2), timedelta(days=3), timedelta(days=7), timedelta(days=14), timedelta(days=30), timedelta(days=90)]
 
 
 class Card:
@@ -53,7 +59,6 @@ class Card:
         self.due_date = due_date
         self.active = active
 
-    
     def increment(self):
         if self.num < len(THESHOLDS):
             self.num = self.num + 1
@@ -65,20 +70,20 @@ class Card:
             self.num = self.num - 1
         else:
             self.num = 0
-    
+
     def update_due_date(self):
         try:
             self.due_date = datetime.now() + THESHOLDS[self.num]
         except Exception as ex:
             self.due_date = datetime.now() + THESHOLDS[self.num-1]
-    
+
     def __repr__(self):
         return "{0} {1} {2} {3}".format(self.question, self.num, self.active, self.due_date)
-    
 
 
 def ask(text):
     return six.moves.input(text)
+
 
 def confirm(text):
     while True:
@@ -115,6 +120,7 @@ def format_timedelta(delta):
         ret = '-' + ret
     return ret
 
+
 def do_review_one(word):
     while True:
         _say_question(word.question)
@@ -123,7 +129,7 @@ def do_review_one(word):
             is_correct = True
         else:
             is_correct = False
-        
+
         if is_correct:
             word.increment()
         else:
@@ -131,15 +137,18 @@ def do_review_one(word):
         word.update_due_date()
         return word, is_correct, answer_text
 
+
 def _change_question(question):
     return question.replace("___", "dash")
 
-def _say_question(word,sleepseconds=0.0):
-    print("\n{} : ".format(word), end = "")
+
+def _say_question(word, sleepseconds=0.0):
+    print("\n{} : ".format(word), end="")
     question = _change_question(word)
     _say(question, sleepseconds)
     _say("The Question is {}".format(question), sleepseconds=sleepseconds)
-            
+
+
 def do_review(wordslist):
     np.random.shuffle(wordslist)
     words_done = []
@@ -156,39 +165,48 @@ def do_review(wordslist):
         else:
             correct_word = word.answer
             print('Incorrect. The Answer is : %s' % correct_word.upper())
-            _say("Incorrect. You wrote {}".format(ans))
+            _say("{}. You wrote {}".format(np.random.choice(INCORRECT_RES), ans))
             _say("The Correct Answer is : ")
             _say(correct_word)
         words_done.append(word_)
-    
+
     return words_done
+
 
 def get_words(fname="words.csv"):
     if os.path.exists(fname):
-        df = pd.read_csv(fname, infer_datetime_format=True, parse_dates=["due_date"])
-        df = df.sort_values(by="due_date", ascending=False) 
-        wordlists = [Card(row.question, row.answer,  num=row.num, due_date=row.due_date, active=row.active) for _, row in df.iterrows()]
+        df = pd.read_csv(fname, infer_datetime_format=True,
+                         parse_dates=["due_date"])
+        df = df.sort_values(by="due_date", ascending=False)
+        wordlists = [Card(row.question, row.answer,  num=row.num,
+                          due_date=row.due_date, active=row.active) for _, row in df.iterrows()]
     else:
-        wordlists=[]
+        wordlists = []
     return wordlists
 
 
 def save_words(wordslist, fname="words.csv"):
-    pd.DataFrame(data=[(word.question, word.answer, word.due_date, word.num, word.active) for word in wordslist], columns=["question", "answer", "due_date","num","active"]).to_csv(fname)
+    pd.DataFrame(data=[(word.question, word.answer, word.due_date, word.num, word.active)
+                       for word in wordslist], columns=["question", "answer", "due_date", "num", "active"]).to_csv(fname)
+
 
 def add_com(args):
    wordslist = get_words(args.word_file)
    word = Card(args.q, args.ans)
    wordslist.append(word)
    save_words(wordslist, args.word_file)
-   print("Question {0} added to {1}".format(args.q,args.word_file))
+   print("Question {0} added to {1}".format(args.q, args.word_file))
+
 
 def print_next_review_day(fname):
-    df = pd.read_csv(fname, infer_datetime_format=True, parse_dates=["due_date"])
-    next_due_date = df.sort_values(by="due_date").iloc[0,3]  
-    text_msg = "Next review in {}".format(format_timedelta(next_due_date-datetime.now()))
+    df = pd.read_csv(fname, infer_datetime_format=True,
+                     parse_dates=["due_date"])
+    next_due_date = df.sort_values(by="due_date").iloc[0, 3]
+    text_msg = "Next review in {}".format(
+        format_timedelta(next_due_date-datetime.now()))
     print(text_msg)
     _say(text_msg)
+
 
 def review_com(args):
     wordslist = get_words(args.word_file)
@@ -205,6 +223,7 @@ def review_com(args):
     else:
         print_next_review_day(args.word_file)
 
+
 def import_com(args):
     data = pd.read_csv(args.text_file, header=None)
     wordslist = get_words(args.word_file)
@@ -212,24 +231,28 @@ def import_com(args):
         word = Card(row[1][0].strip(), row[1][1].strip())
         wordslist.append(word)
     save_words(wordslist, args.word_file)
-    print("Question in {} imported into {} ".format(args.text_file, args.word_file))
+    print("Question in {} imported into {} ".format(
+        args.text_file, args.word_file))
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Study Revision with Spaced Repetetion for Kids on Mac and windows.")
+    parser = argparse.ArgumentParser(
+        description="Study Revision with Spaced Repetetion for Kids on Mac and windows.")
     subparser = parser.add_subparsers()
-    
+
     add_p = subparser.add_parser("add")
     add_p.add_argument("word_file", type=str, default="words.csv")
     add_p.add_argument("-q", type=str, help="Question ")
-    add_p.add_argument("-ans", type=str, help ="Answer here")
+    add_p.add_argument("-ans", type=str, help="Answer here")
     add_p.set_defaults(func=add_com)
 
     import_p = subparser.add_parser("import")
-    import_p.add_argument("word_file", type=str, default="words.csv", help="Where you want to add questions")
-    import_p.add_argument("text_file", type=str, help="File with question and answers per line seperated by , use ___ as blank  ")
+    import_p.add_argument("word_file", type=str, default="words.csv",
+                          help="Where you want to add questions")
+    import_p.add_argument(
+        "text_file", type=str, help="File with question and answers per line seperated by , use ___ as blank  ")
     import_p.set_defaults(func=import_com)
-    
+
     review_p = subparser.add_parser("review")
     review_p.add_argument("word_file", type=str, default="words.csv")
     review_p.set_defaults(func=review_com)
@@ -237,8 +260,6 @@ def main():
     args = parser.parse_args()
     args.func(args)
 
+
 if __name__ == "__main__":
     main()
-  
-
-
