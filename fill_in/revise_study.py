@@ -30,10 +30,25 @@ CORRECT_RES = ["Thats Fantastic Effort", "Wow thats good",
 INCORRECT_RES = ["Thats Incorrect",
                  "Try Harder", "Focus", "Are you kidding me"]
 
+# TODO Streaks
+# Streaks encoragement
+
+def check_next_active(wordlist, fname, num=5):
+    next_due_date = _get_next_review_day(fname)
+
+    seconds_to_next_review = next_due_date-datetime.now()
+    if seconds_to_next_review.seconds >= 60*60*10: # 10 hours
+        selected_word = [word for word in wordlist if word.active is False]
+        selected_word = selected_word[:num]
+        for word in selected_word:
+            word.active = True
+    save_words(wordlist, fname)
+    
+
 
 def get_words_to_reveiw(wordlist):
     now = datetime.now()
-    selected_word = [word for word in wordlist if word.due_date < now]
+    selected_word = [word for word in wordlist if word.due_date < now and word.active]
     no_words = len(selected_word)
     # if more than 15 words, show only 10-15 words
     if no_words > 15:
@@ -52,24 +67,30 @@ THESHOLDS = [timedelta(seconds=120), timedelta(hours=1), timedelta(hours=3), tim
 
 
 class Card:
-    def __init__(self, question, answer,  num=0, due_date=datetime.now(), active=True):
+    def __init__(self, question, answer,  num=0, due_date=datetime.now(), active=False):
         self.question = question
         self.answer = answer
         self.num = num
         self.due_date = due_date
         self.active = active
+        # self.no_incorrect = 0
+        # self.no_of_tries = 0
 
     def increment(self):
+        # self.no_of_tries += 1
         if self.num < len(THESHOLDS):
             self.num = self.num + 1
         else:
             self.num = len(THESHOLDS)
 
     def decrement(self):
+        # self.no_of_tries += 1
         if self.num >= 0:
             self.num = self.num - 1
+            # self.no_incorrect += 1
         else:
             self.num = 0
+            # self.no_incorrect += 1
 
     def update_due_date(self):
         try:
@@ -198,14 +219,19 @@ def add_com(args):
    print("Question {0} added to {1}".format(args.q, args.word_file))
 
 
-def print_next_review_day(fname):
+def _get_next_review_day(fname):
     df = pd.read_csv(fname, infer_datetime_format=True,
                      parse_dates=["due_date"])
     next_due_date = df.sort_values(by="due_date").iloc[0, 3]
+    return next_due_date
+
+def print_next_review_day(fname):
+    next_due_date = _get_next_review_day(fname)
     text_msg = "Next review in {}".format(
         format_timedelta(next_due_date-datetime.now()))
     print(text_msg)
     _say(text_msg)
+
 
 
 def review_com(args):
@@ -219,8 +245,10 @@ def review_com(args):
             print(ex)
             save_words(wordslist, args.word_file)
             raise
+        
         print_next_review_day(args.word_file)
     else:
+        check_next_active(wordslist, args.word_file)
         print_next_review_day(args.word_file)
 
 
