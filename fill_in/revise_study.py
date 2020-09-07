@@ -62,8 +62,8 @@ def get_words_to_reveiw(wordlist):
     return selected_word
 
 
-THESHOLDS = [timedelta(seconds=120), timedelta(hours=1), timedelta(hours=3), timedelta(hours=7), timedelta(hours=24), timedelta(
-    days=2), timedelta(days=3), timedelta(days=7), timedelta(days=14), timedelta(days=30), timedelta(days=90)]
+THESHOLDS = [timedelta(seconds=120), timedelta(hours=3), timedelta(hours=7), timedelta(hours=24), timedelta(days=2), timedelta(
+    days=4), timedelta(days=8), timedelta(days=16), timedelta(days=28), timedelta(days=90), timedelta(days=180)]
 
 
 class Card:
@@ -173,6 +173,8 @@ def _say_question(word, sleepseconds=0.0):
 def do_review(wordslist):
     np.random.shuffle(wordslist)
     words_done = []
+    total_correct = 0
+    total_incorrect = 0
     while True:
         if not wordslist:
             break
@@ -181,9 +183,11 @@ def do_review(wordslist):
         word_, is_correct, ans = do_review_one(word)
         if is_correct:
             wordslist.remove(word)
+            total_correct += 1
             print('Correct')
             _say(np.random.choice(CORRECT_RES))
         else:
+            total_incorrect +=1
             correct_word = word.answer
             print('Incorrect. The Answer is : %s' % correct_word.upper())
             _say("{}. You wrote {}".format(np.random.choice(INCORRECT_RES), ans))
@@ -191,6 +195,7 @@ def do_review(wordslist):
             _say(correct_word)
         words_done.append(word_)
 
+    _say("You answered {} words correctly and {} words incorrectly".format(total_correct, total_incorrect))
     return words_done
 
 
