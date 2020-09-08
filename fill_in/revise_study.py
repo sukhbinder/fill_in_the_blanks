@@ -42,6 +42,7 @@ def check_next_active(wordlist, fname, num=5):
         selected_word = selected_word[:num]
         for word in selected_word:
             word.active = True
+            word.due_data = datetime.now()+timedelta(seconds=600)
     save_words(wordlist, fname)
     
 
