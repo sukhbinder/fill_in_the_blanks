@@ -41,9 +41,10 @@ def is_time_to_add_words(fname):
     return seconds_to_next_review.seconds >= 60*60*3
 
 
-def check_next_active(wordlist, fname, num=10):
+def check_next_active(fname, num=10):
     if not is_time_to_add_words(fname):
         return
+    wordslist = get_words(fname)
     selected_word = [word for word in wordlist if word.active is False]
     if len(selected_word) > num:
         selected_word = selected_word[:num]
@@ -271,7 +272,7 @@ def review_com(args):
         try:
             words_done = do_review(sel_words)
             save_words(wordslist, args.word_file)
-            check_next_active(wordslist, args.word_file)
+            check_next_active(args.word_file)
         except Exception as ex:
             print(ex)
             save_words(wordslist, args.word_file)
@@ -279,7 +280,7 @@ def review_com(args):
 
         print_next_review_day(args.word_file)
     else:
-        check_next_active(wordslist, args.word_file)
+        check_next_active(args.word_file)
         print_next_review_day(args.word_file)
 
 
