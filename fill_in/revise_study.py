@@ -28,28 +28,36 @@ else:
 CORRECT_RES = ["Thats Fantastic Effort", "Wow thats good",
                "Thats right. Way to go.", "Good Job.", "Excellent", "Thats correct. Good Effort"]
 INCORRECT_RES = ["Thats Incorrect",
-                 "Try Harder", "Focus", "Are you kidding me"]
+                 "Try Harder", "Focus", "Are you kidding me", "Focus on this"]
 
 # TODO Streaks
 # Streaks encoragement
 
-def check_next_active(wordlist, fname, num=5):
-    next_due_date = _get_next_review_day(fname)
 
+def is_time_to_add_words(fname):
+    next_due_date = _get_next_review_day(fname)
     seconds_to_next_review = next_due_date-datetime.now()
-    if seconds_to_next_review.seconds >= 60*60*10: # 10 hours
-        selected_word = [word for word in wordlist if word.active is False]
+    # check if the time has past 3 hours
+    return seconds_to_next_review.seconds >= 60*60*3
+
+
+def check_next_active(wordlist, fname, num=10):
+    if not is_time_to_add_words(fname):
+        return
+    selected_word = [word for word in wordlist if word.active is False]
+    if len(selected_word) > num:
         selected_word = selected_word[:num]
-        for word in selected_word:
-            word.active = True
-            word.due_data = datetime.now()+timedelta(seconds=600)
+
+    for word in selected_word:
+        word.active = True
+        word.due_data = datetime.now()+timedelta(seconds=600)
     save_words(wordlist, fname)
-    
 
 
 def get_words_to_reveiw(wordlist):
     now = datetime.now()
-    selected_word = [word for word in wordlist if word.due_date < now and word.active]
+    selected_word = [
+        word for word in wordlist if word.due_date < now and word.active]
     no_words = len(selected_word)
     # if more than 15 words, show only 10-15 words
     if no_words > 15:
@@ -188,7 +196,7 @@ def do_review(wordslist):
             print('Correct')
             _say(np.random.choice(CORRECT_RES))
         else:
-            total_incorrect +=1
+            total_incorrect += 1
             correct_word = word.answer
             print('Incorrect. The Answer is : %s' % correct_word.upper())
             _say("{}. You wrote {}".format(np.random.choice(INCORRECT_RES), ans))
@@ -196,7 +204,8 @@ def do_review(wordslist):
             _say(correct_word)
         words_done.append(word_)
 
-    _say("You answered {} words correctly and {} words incorrectly".format(total_correct, total_incorrect))
+    _say("You answered {} words correctly and {} words incorrectly".format(
+        total_correct, total_incorrect))
     return words_done
 
 
@@ -228,8 +237,9 @@ def add_com(args):
 def _get_next_review_day(fname):
     df = pd.read_csv(fname, infer_datetime_format=True,
                      parse_dates=["due_date"])
-    next_due_date = df.sort_values(by="due_date").iloc[0, 3]
+    next_due_date = df[df.active].sort_values(by="due_date").iloc[0, 3]
     return next_due_date
+
 
 def print_next_review_day(fname):
     next_due_date = _get_next_review_day(fname)
@@ -239,6 +249,20 @@ def print_next_review_day(fname):
     _say(text_msg)
 
 
+def study_com(args):
+    wordslist = get_words(args.word_file)
+    selected_word = [word for word in wordslist if word.active is False]
+    if selected_word:
+        for word in selected_word[:args.nwords]:
+            word.active = True
+            word.due_data = datetime.now()+timedelta(seconds=600)
+            question = _change_question(word.question)
+            print("\n", word.question)
+            _say(question, 3)
+            print("\t\t",word.answer.upper())
+            _say(word.answer, 2)
+        save_words(wordslist, args.word_file)
+
 
 def review_com(args):
     wordslist = get_words(args.word_file)
@@ -247,11 +271,12 @@ def review_com(args):
         try:
             words_done = do_review(sel_words)
             save_words(wordslist, args.word_file)
+            check_next_active(wordslist, args.word_file)
         except Exception as ex:
             print(ex)
             save_words(wordslist, args.word_file)
             raise
-        
+
         print_next_review_day(args.word_file)
     else:
         check_next_active(wordslist, args.word_file)
@@ -290,6 +315,11 @@ def main():
     review_p = subparser.add_parser("review")
     review_p.add_argument("word_file", type=str, default="words.csv")
     review_p.set_defaults(func=review_com)
+
+    study_p = subparser.add_parser("study")
+    study_p.add_argument("word_file", type=str, default="words.csv")
+    study_p.add_argument("-n", "--nwords", type=int, default=10)
+    study_p.set_defaults(func=study_com)
 
     args = parser.parse_args()
     args.func(args)
