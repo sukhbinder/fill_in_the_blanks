@@ -4,8 +4,9 @@ import argparse
 import os
 import time
 import six
-import colorama
+from colorama import init, Fore, Back
 
+init(autoreset=True)
 
 from datetime import datetime, timedelta
 
@@ -45,14 +46,14 @@ def check_next_active(fname, num=10):
     if not is_time_to_add_words(fname):
         return
     wordslist = get_words(fname)
-    selected_word = [word for word in wordlist if word.active is False]
+    selected_word = [word for word in wordslist if word.active is False]
     if len(selected_word) > num:
         selected_word = selected_word[:num]
 
     for word in selected_word:
         word.active = True
         word.due_data = datetime.now()+timedelta(seconds=600)
-    save_words(wordlist, fname)
+    save_words(wordslist, fname)
 
 
 def get_words_to_reveiw(wordlist):
@@ -188,18 +189,18 @@ def do_review(wordslist):
     while True:
         if not wordslist:
             break
-        print("\n{0} Questions to go. ".format(len(wordslist)))
+        print(Fore.CYAN+"\n{0} Questions to go. ".format(len(wordslist)))
         word = np.random.choice(wordslist)
         word_, is_correct, ans = do_review_one(word)
         if is_correct:
             wordslist.remove(word)
             total_correct += 1
-            print('Correct')
+            print(Fore.YELLOW+'Correct')
             _say(np.random.choice(CORRECT_RES))
         else:
             total_incorrect += 1
             correct_word = word.answer
-            print('Incorrect. The Answer is : %s' % correct_word.upper())
+            print(Fore.RED+'Incorrect. The Answer is : %s' % correct_word.upper())
             _say("{}. You wrote {}".format(np.random.choice(INCORRECT_RES), ans))
             _say("The Correct Answer is : ")
             _say(correct_word)
