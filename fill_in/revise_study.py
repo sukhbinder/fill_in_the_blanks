@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 import argparse
@@ -8,7 +9,6 @@ from colorama import init, Fore, Back
 
 init(autoreset=True)
 
-from datetime import datetime, timedelta
 
 if os.name == "nt":
     import win32com.client as wincl
@@ -38,8 +38,8 @@ INCORRECT_RES = ["Thats Incorrect",
 def is_time_to_add_words(fname):
     next_due_date = _get_next_review_day(fname)
     seconds_to_next_review = next_due_date-datetime.now()
-    # check if the time has past 3 hours
-    return seconds_to_next_review.seconds >= 60*60*3
+    # check if the time has past 5 hours
+    return seconds_to_next_review.seconds >= 60*60*5
 
 
 def check_next_active(fname, num=10):
@@ -96,7 +96,10 @@ class Card:
 
     def decrement(self):
         # self.no_of_tries += 1
-        if self.num >= 0:
+        # punish if wrong after 30 days
+        if self.num > 8:
+            self.num -=4
+        elif self.num >= 0:
             self.num = self.num - 1
             # self.no_incorrect += 1
         else:
@@ -200,7 +203,8 @@ def do_review(wordslist):
         else:
             total_incorrect += 1
             correct_word = word.answer
-            print(Fore.RED+'Incorrect. The Answer is : %s' % correct_word.upper())
+            print(Fore.RED+'Incorrect. The Answer is : %s' %
+                  correct_word.upper())
             _say("{}. You wrote {}".format(np.random.choice(INCORRECT_RES), ans))
             _say("The Correct Answer is : ")
             _say(correct_word)
@@ -261,7 +265,7 @@ def study_com(args):
             question = _change_question(word.question)
             print("\n", word.question)
             _say(question, 3)
-            print("\t\t",word.answer.upper())
+            print("\t\t", word.answer.upper())
             _say(word.answer, 2)
         save_words(wordslist, args.word_file)
 
