@@ -6,6 +6,7 @@ import os
 import time
 import six
 from colorama import init, Fore, Back
+import sys
 
 init(autoreset=True)
 
@@ -252,7 +253,10 @@ def print_next_review_day(fname):
     text_msg = "Next review in {}".format(
         format_timedelta(next_due_date-datetime.now()))
     print(text_msg)
-    _say(text_msg)
+    if "-" not in text_msg:
+        _say(text_msg)
+    else:
+        _say("Next Revies is Now.")
 
 
 def study_com(args):
@@ -332,4 +336,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
