@@ -63,8 +63,8 @@ def get_words_to_reveiw(wordlist):
         word for word in wordlist if word.due_date < now and word.active]
     no_words = len(selected_word)
     # if more than 15 words, show only 10-15 words
-    if no_words > 15:
-        selected_word = selected_word[:np.random.randint(10, 16)]
+    if no_words > 20:
+        selected_word = selected_word[:np.random.randint(15, 20)]
     if not selected_word:
         print("Nothing to review.")
         _say("Nothing to review.")
@@ -244,7 +244,7 @@ def add_com(args):
 def _get_next_review_day(fname):
     df = pd.read_csv(fname, infer_datetime_format=True,
                      parse_dates=["due_date"])
-    next_due_date = df[df.active].sort_values(by="due_date").iloc[0, 3]
+    next_due_date = df[df.num !=0].sort_values(by="due_date").iloc[0, 3]
     return next_due_date
 
 
