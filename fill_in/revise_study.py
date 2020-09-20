@@ -43,7 +43,7 @@ def is_time_to_add_words(fname):
     return seconds_to_next_review.seconds >= 60*60*5
 
 
-def check_next_active(fname, num=10):
+def check_next_active(fname, num=5):
     if not is_time_to_add_words(fname):
         return
     wordslist = get_words(fname)
@@ -57,10 +57,31 @@ def check_next_active(fname, num=10):
     save_words(wordslist, fname)
 
 
-def get_words_to_reveiw(wordlist):
+def notify(num, filename):
+    msg = 'display notification "{}" with title "Fill_IN APP" sound name "Submarine"'
+    text = "{} in {}".format(num, os.path.basename(filename))
+    rest_command = """'display notification "{}" with title "FILL IN APP" sound name "Submarine"'""".format(
+        text)
+    os.system("osascript -e " + rest_command)
+
+
+def get_no_of_words(args):
+    wordslist = get_words(args.word_file)
+    sw = get_selected_word(wordslist)
+    n_words = len(sw)
+    if n_words:
+        notify(n_words, args.word_file)
+
+
+def get_selected_word(wordlist):
     now = datetime.now()
     selected_word = [
         word for word in wordlist if word.due_date < now and word.active]
+    return selected_word
+
+
+def get_words_to_reveiw(wordlist):
+    selected_word = get_selected_word(wordlist)
     no_words = len(selected_word)
     # if more than 15 words, show only 10-15 words
     if no_words > 20:
@@ -99,7 +120,7 @@ class Card:
         # self.no_of_tries += 1
         # punish if wrong after 30 days
         if self.num > 8:
-            self.num -=4
+            self.num -= 4
         elif self.num >= 0:
             self.num = self.num - 1
             # self.no_incorrect += 1
@@ -244,7 +265,7 @@ def add_com(args):
 def _get_next_review_day(fname):
     df = pd.read_csv(fname, infer_datetime_format=True,
                      parse_dates=["due_date"])
-    next_due_date = df[df.num !=0].sort_values(by="due_date").iloc[0, 3]
+    next_due_date = df[df.num != 0].sort_values(by="due_date").iloc[0, 3]
     return next_due_date
 
 
@@ -330,6 +351,10 @@ def main():
     study_p.add_argument("word_file", type=str, default="words.csv")
     study_p.add_argument("-n", "--nwords", type=int, default=10)
     study_p.set_defaults(func=study_com)
+
+    getno_p = subparser.add_parser("notify")
+    getno_p.add_argument("word_file", type=str, default="words.csv")
+    getno_p.set_defaults(func=get_no_of_words)
 
     args = parser.parse_args()
     args.func(args)
