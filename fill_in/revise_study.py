@@ -134,6 +134,9 @@ class Card:
         except Exception as ex:
             self.due_date = datetime.now() + THESHOLDS[self.num-1]
 
+    def toggle_acive(self):
+        self.active = not self.active
+
     def __repr__(self):
         return "{0} {1} {2} {3}".format(self.question, self.num, self.active, self.due_date)
 
@@ -324,6 +327,64 @@ def import_com(args):
     print("Question in {} imported into {} ".format(
         args.text_file, args.word_file))
 
+def do_test_one(word):
+    while True:
+        # _say_question(word.question)
+        print("\n{} : ".format(word.question), end="")
+        answer_text = ask("")
+        if answer_text.strip().lower() == word.answer.lower():
+            is_correct = True
+        else:
+            is_correct = False
+
+        if is_correct:
+            word.active= False
+        else:
+            word.active = True
+        return word, is_correct, answer_text
+
+def get_test_words(test_file, files, n_words):
+    test_words = get_words(test_file)
+    
+    # remove last correct words
+    for word in test_words:
+        if not word.active:
+            test_words.remove(word)
+
+    for afile in files:
+        wordslist = get_words(afile)
+        sl = np.random.choice(wordslist, size=n_words, replace=True)
+        test_words.extend(sl)
+    print("{} words selected for test".format(len(test_words)))
+    return test_words
+
+def do_test(test_words):
+
+    correct = 0
+    incorrect = 0
+    total = len(test_words)
+    while True:
+        if not test_words:
+            break
+        print(Fore.CYAN+"\n{0} Questions to go. ".format(len(test_words)))
+        word = np.random.choice(test_words)
+        word_, is_correct, ans = do_test_one(word)
+        if is_correct:
+            correct +=1
+        else:
+            incorrect +=1
+        test_words.remove(word)
+    
+    _say("Your score is {} out of {} ".format(correct, total))
+    _say("You scored {:.1f} %".format(correct*100/total))
+    
+def test_com(args):
+    files = args.files
+    n_words = args.nwords
+    test_words = get_test_words(args.word_file, files, n_words)
+    do_test(test_words)
+    save_words(test_words, args.word_file)
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -355,6 +416,13 @@ def main():
     getno_p = subparser.add_parser("notify")
     getno_p.add_argument("word_file", type=str, default="words.csv")
     getno_p.set_defaults(func=get_no_of_words)
+
+    test_p = subparser.add_parser("test")
+    test_p.add_argument("word_file", type=str, default="test.csv")
+    test_p.add_argument("files", type=str, nargs="*")
+    test_p.add_argument("-n", "--nwords", type=int, default=7, help="Words from each file")
+    test_p.set_defaults(func=test_com)
+
 
     args = parser.parse_args()
     args.func(args)
