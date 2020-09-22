@@ -12,6 +12,6 @@ setup(
         'console_scripts': ['fillin = fill_in.revise_study:main']
     },
 
-    install_requires=["pandas",
+    install_requires=["pandas","colorama",
     "pywin32 >= 1.0;platform_system=='Windows'"],
 )
