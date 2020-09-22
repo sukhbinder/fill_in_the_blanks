@@ -7,6 +7,8 @@ import time
 import six
 from colorama import init, Fore, Back
 import sys
+from multiprocessing import Process
+
 
 init(autoreset=True)
 
@@ -198,8 +200,11 @@ def do_review_one(word):
 def _change_question(question):
     return question.replace("___", "dash")
 
-
 def _say_question(word, sleepseconds=0.0):
+    process = Process(target=_say_question_inner, args=(word,sleepseconds,), daemon=True)
+    process.start()
+
+def _say_question_inner(word, sleepseconds=0.0):
     print("\n{} : ".format(word), end="")
     question = _change_question(word)
     _say(question, sleepseconds)
