@@ -363,11 +363,17 @@ def get_test_words(test_file, files, n_words):
     print("{} words selected for test".format(len(test_words)))
     return test_words
 
+def print_correction(ic_words):
+    print(Fore.MAGENTA+"Your correction:\n")
+    for ic in ic_words:
+        print(Fore.CYAN+ic[0].question, Fore.RED+ic[1], Fore.GREEN+ic[0].answer)
+
 def do_test(test_words):
 
     correct = 0
     incorrect = 0
     total = len(test_words)
+    incorrect_words = []
     while True:
         if not test_words:
             break
@@ -378,10 +384,20 @@ def do_test(test_words):
             correct +=1
         else:
             incorrect +=1
+            incorrect_words.append([word, ans])
         test_words.remove(word)
     
-    _say("Your score is {} out of {} ".format(correct, total))
-    _say("You scored {:.1f} %".format(correct*100/total))
+    msg1 = "Your score is {} out of {} ".format(correct, total)
+    msg2 = "You scored {:.1f} %".format(correct*100/total)
+    print(msg1)
+    print(msg2)
+    _say(msg1)
+    _say(msg2)
+
+    print_correction(incorrect_words)
+    
+
+
     
 def test_com(args):
     files = args.files
@@ -425,7 +441,7 @@ def main():
     test_p = subparser.add_parser("test")
     test_p.add_argument("word_file", type=str, default="test.csv")
     test_p.add_argument("files", type=str, nargs="*")
-    test_p.add_argument("-n", "--nwords", type=int, default=7, help="Words from each file")
+    test_p.add_argument("-n", "--nwords", type=int, default=5, help="Words from each file")
     test_p.set_defaults(func=test_com)
 
 
