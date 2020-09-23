@@ -203,9 +203,12 @@ def do_review_one(word):
 def _change_question(question):
     return question.replace("___", "dash")
 
+
 def _say_question(word, sleepseconds=0.0):
-    process = Process(target=_say_question_inner, args=(word,sleepseconds,), daemon=True)
+    process = Process(target=_say_question_inner,
+                      args=(word, sleepseconds,), daemon=True)
     process.start()
+
 
 def _say_question_inner(word, sleepseconds=0.0):
     print("\n{} : ".format(word), end="")
@@ -332,6 +335,7 @@ def import_com(args):
     print("Question in {} imported into {} ".format(
         args.text_file, args.word_file))
 
+
 def do_test_one(word):
     while True:
         # _say_question(word.question)
@@ -343,14 +347,15 @@ def do_test_one(word):
             is_correct = False
 
         if is_correct:
-            word.active= False
+            word.active = False
         else:
             word.active = True
         return word, is_correct, answer_text
 
+
 def get_test_words(test_file, files, n_words):
     test_words = get_words(test_file)
-    
+
     # remove last correct words
     for word in test_words:
         if not word.active:
@@ -358,18 +363,30 @@ def get_test_words(test_file, files, n_words):
 
     for afile in files:
         wordslist = get_words(afile)
-        sl = np.random.choice(wordslist, size=n_words, replace=True)
+        sl = np.random.choice(wordslist, size=n_words, replace=False)
         test_words.extend(sl)
     print("{} words selected for test".format(len(test_words)))
     return test_words
 
-def print_correction(ic_words):
-    print(Fore.MAGENTA+"Your correction:\n")
+
+def _print_words(ic_words):
+    print(Fore.MAGENTA+"Results:\n")
     for ic in ic_words:
-        print(Fore.CYAN+ic[0].question, Fore.RED+ic[1], Fore.GREEN+ic[0].answer)
+        print(Fore.CYAN+ic[0].question, Fore.RED +
+              ic[1], Fore.GREEN+ic[0].answer)
+
+
+def print_correction(ic_words):
+    _print_words(ic_words)
+    date_time = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+    data = [(ic[0].question, ic[0].answer, ic[1]) for ic in ic_words]
+    fname = os.path.join(os.path.expanduser(
+        "~"), "FILL_IN_RESULTS_{}.csv".format(date_time))
+    df = pd.DataFrame(data=data, columns=[
+                      "Question", "Answer", "UserAnswer"]).to_csv(fname, index=False)
+
 
 def do_test(test_words):
-
     correct = 0
     incorrect = 0
     total = len(test_words)
@@ -381,12 +398,13 @@ def do_test(test_words):
         word = np.random.choice(test_words)
         word_, is_correct, ans = do_test_one(word)
         if is_correct:
-            correct +=1
+            correct += 1
+            incorrect_words.append([word, ""])
         else:
-            incorrect +=1
+            incorrect += 1
             incorrect_words.append([word, ans])
         test_words.remove(word)
-    
+
     msg1 = "Your score is {} out of {} ".format(correct, total)
     msg2 = "You scored {:.1f} %".format(correct*100/total)
     print(msg1)
@@ -395,10 +413,8 @@ def do_test(test_words):
     _say(msg2)
 
     print_correction(incorrect_words)
-    
 
 
-    
 def test_com(args):
     files = args.files
     n_words = args.nwords
@@ -441,11 +457,13 @@ def main():
     test_p = subparser.add_parser("test")
     test_p.add_argument("word_file", type=str, default="test.csv")
     test_p.add_argument("files", type=str, nargs="*")
-    test_p.add_argument("-n", "--nwords", type=int, default=5, help="Words from each file")
+    test_p.add_argument("-n", "--nwords", type=int,
+                        default=5, help="Words from each file")
     test_p.set_defaults(func=test_com)
 
 
     args = parser.parse_args()
+    print(args)
     args.func(args)
 
 
