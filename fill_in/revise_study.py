@@ -391,12 +391,14 @@ def do_test(test_words):
     incorrect = 0
     total = len(test_words)
     incorrect_words = []
+    save_selected_words = []
     while True:
         if not test_words:
             break
         print(Fore.CYAN+"\n{0} Questions to go. ".format(len(test_words)))
         word = np.random.choice(test_words)
         word_, is_correct, ans = do_test_one(word)
+        save_selected_words.append(word_)
         if is_correct:
             correct += 1
             incorrect_words.append([word, ""])
@@ -411,16 +413,16 @@ def do_test(test_words):
     print(msg2)
     _say(msg1)
     _say(msg2)
-
     print_correction(incorrect_words)
+    return save_selected_words
 
 
 def test_com(args):
     files = args.files
     n_words = args.nwords
     test_words = get_test_words(args.word_file, files, n_words)
-    do_test(test_words)
-    save_words(test_words, args.word_file)
+    save_selected_words = do_test(test_words)
+    save_words(save_selected_words, args.word_file)
 
 
 def main():
@@ -463,7 +465,7 @@ def main():
 
 
     args = parser.parse_args()
-    print(args)
+    # print(args)
     args.func(args)
 
 
