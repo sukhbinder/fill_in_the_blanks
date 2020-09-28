@@ -213,7 +213,7 @@ def _say_question(word, sleepseconds=0.0):
 def _say_question_inner(word, sleepseconds=0.0):
     print("\n{} : ".format(word), end="")
     question = _change_question(word)
-    _say(question, sleepseconds)
+    # _say(question, sleepseconds)
     _say("The Question is {}".format(question), sleepseconds=sleepseconds)
 
 
@@ -288,7 +288,8 @@ def print_next_review_day(fname):
     if "-" not in text_msg:
         _say(text_msg)
     else:
-        _say("Next Revies is Now.")
+        _say("Next Review is Now.")
+        review_words(fname)
 
 
 def study_com(args):
@@ -306,24 +307,28 @@ def study_com(args):
         save_words(wordslist, args.word_file)
 
 
-def review_com(args):
-    wordslist = get_words(args.word_file)
+def review_words(word_file):
+    
+    wordslist = get_words(word_file)
     sel_words = get_words_to_reveiw(wordslist)
     if sel_words:
         try:
             words_done = do_review(sel_words)
-            save_words(wordslist, args.word_file)
-            check_next_active(args.word_file)
+            save_words(wordslist, word_file)
+            check_next_active(word_file)
         except Exception as ex:
             print(ex)
-            save_words(wordslist, args.word_file)
+            save_words(wordslist, word_file)
             raise
 
-        print_next_review_day(args.word_file)
+        print_next_review_day(word_file)
     else:
-        check_next_active(args.word_file)
-        print_next_review_day(args.word_file)
+        check_next_active(word_file)
+        print_next_review_day(word_file)
 
+
+def review_com(args):
+    review_words(args.word_file)
 
 def import_com(args):
     data = pd.read_csv(args.text_file, header=None)
