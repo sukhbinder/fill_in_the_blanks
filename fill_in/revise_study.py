@@ -120,9 +120,9 @@ class Card:
 
     def decrement(self):
         # self.no_of_tries += 1
-        # punish if wrong after 30 days
-        if self.num > 8:
-            self.num -= 4
+        # punish if wrong after 28 days
+        if self.num >= 8:
+            self.num -= 6
         elif self.num >= 0:
             self.num = self.num - 1
             # self.no_incorrect += 1
@@ -141,6 +141,39 @@ class Card:
 
     def __repr__(self):
         return "{0} {1} {2} {3}".format(self.question, self.num, self.active, self.due_date)
+
+
+class Deck():
+    """
+    Deck will be a file , with all the cards.
+    """
+    def __init__(self, fname = "words.csv"):
+        self.fname = fname
+        self.cards = None
+
+    def _get_words(self):
+        if os.path.exists(self.fname):
+            df = pd.read_csv(self.fname, infer_datetime_format=True,
+                            parse_dates=["due_date"])
+            df = df.sort_values(by="due_date", ascending=False)
+            wordlists = [Card(row.question, row.answer,  num=row.num,
+                            due_date=row.due_date, active=row.active) for _, row in df.iterrows()]
+        else:
+            wordlists = []
+        return wordlists
+
+    def get_all_cards(self):
+        if self.cards is None:
+            self.cards = self._get_words()
+        return self.cards
+    
+    def save_words(self, wordslist):
+        pd.DataFrame(data=[(word.question, word.answer, word.due_date, word.num, word.active)
+                       for word in wordslist], columns=["question", "answer", "due_date", "num", "active"]).to_csv(self.fname)
+
+    def get_due_cards(self):
+        pass
+    
 
 
 def ask(text):
