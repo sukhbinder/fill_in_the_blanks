@@ -9,7 +9,7 @@ setup(
     author="sukhbinder",
     author_email="sukh2010@yahoo.com",
     entry_points={
-        'console_scripts': ['fillin = fill_in.revise_study:main']
+        'console_scripts': ['fillin = fill_in.app:main']
     },
 
     install_requires=["pandas","colorama",

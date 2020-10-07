@@ -81,7 +81,6 @@ def get_selected_word(wordlist):
         word for word in wordlist if word.due_date < now and word.active]
     return selected_word
 
-
 def get_words_to_reveiw(wordlist):
     selected_word = get_selected_word(wordlist)
     no_words = len(selected_word)
