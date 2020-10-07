@@ -54,6 +54,7 @@ def get_no_of_words(args):
     if n_words:
         notify(n_words, args.word_file)
 
+
 def do_review_one(word):
     while True:
         _say_question(word.question)
@@ -188,6 +189,7 @@ def review_words(word_file):
 def review_com(args):
     review_words(args.word_file)
 
+
 def import_com(args):
     deck = Deck(args.word_file)
     deck.import_cards(args.text_file)
@@ -209,13 +211,15 @@ def do_test_one(word):
             word.active = True
         return word, is_correct, answer_text
 
+
 def get_unique_words(wordslist, test_words):
-     wl = [word.question for word in wordslist]
-     tw = [word for word in test_words if word.question not in wl]
-     if len(tw) > 12:
-         tw = np.random.choice(tw, size=10, replace=False)
-     wordslist.extend(tw)
-     return wordslist
+    wl = [word.question for word in wordslist]
+    tw = [word for word in test_words if word.question not in wl]
+    if len(tw) > 12:
+        tw = np.random.choice(tw, size=10, replace=False)
+    wordslist.extend(tw)
+    return wordslist
+
 
 def get_test_words(test_file, files, n_words):
     test_words = Deck(test_file).get_active_cards()
@@ -233,7 +237,8 @@ def _print_words(ic_words):
     print(Fore.MAGENTA+"Results:\n")
     for ic in ic_words:
         print(Fore.CYAN+ic[0].question, Fore.RED +
-                ic[1], Fore.GREEN+ic[0].answer)
+              ic[1], Fore.GREEN+ic[0].answer)
+
 
 def print_correction(ic_words):
     _print_words(ic_words)
@@ -324,7 +329,6 @@ def main():
     test_p.add_argument("-n", "--nwords", type=int,
                         default=5, help="Words from each file")
     test_p.set_defaults(func=test_com)
-
 
     args = parser.parse_args()
     # print(args)
