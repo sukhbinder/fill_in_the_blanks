@@ -10,7 +10,8 @@ from colorama import init, Fore, Back
 import sys
 from multiprocessing import Process
 
-from fill_in.util import _say, format_timedelta, ask
+from fill_in.util import _say, format_timedelta, ask, notify
+
 from fill_in.deck_cards import Deck
 
 
@@ -47,34 +48,11 @@ def check_next_active(fname, num=2):
 
 
 def get_no_of_words(args):
-    wordslist = get_words(args.word_file)
-    sw = get_selected_word(wordslist)
+    # wordslist = get_words(args.word_file)
+    sw = Deck(args.word_file).get_due_cards()
     n_words = len(sw)
     if n_words:
         notify(n_words, args.word_file)
-
-
-def get_selected_word(wordlist):
-    now = datetime.now()
-    selected_word = [
-        word for word in wordlist if word.due_date < now and word.active]
-    return selected_word
-
-
-def get_words_to_reveiw(wordlist):
-    selected_word = get_selected_word(wordlist)
-    no_words = len(selected_word)
-    # if more than 15 words, show only 10-15 words
-    if no_words > 20:
-        selected_word = selected_word[:np.random.randint(15, 20)]
-    if not selected_word:
-        print("Nothing to review.")
-        _say("Nothing to review.")
-    else:
-        print("{} words selected out of {}".format(
-            len(selected_word), no_words))
-    return selected_word
-
 
 def do_review_one(word):
     while True:
@@ -189,20 +167,15 @@ def study_com(args):
 
 
 def review_words(word_file):
-    
-    # wordslist = get_words(word_file)
-    # sel_words = get_words_to_reveiw(wordslist)
     deck = Deck(word_file)
     sel_words = deck.get_due_cards()
     if sel_words:
         try:
             words_done = do_review(sel_words)
-            # save_words(wordslist, word_file)
             deck.save_words(words_done)
             check_next_active(word_file)
         except Exception as ex:
             print(ex)
-            # save_words(wordslist, word_file)
             deck.save_words(sel_words)
             raise
 
@@ -246,7 +219,6 @@ def get_unique_words(wordslist, test_words):
 
 def get_test_words(test_file, files, n_words):
     test_words = Deck(test_file).get_active_cards()
-
     wl = []
     for afile in files:
         wordslist = Deck(afile).cards
