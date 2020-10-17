@@ -59,7 +59,7 @@ class Deck():
     def __init__(self, fname = "words.csv"):
         self.fname = fname
         self.cards = None
-        self.nextid = None
+        self.nextid = 0
         self._get_all_cards()
 
     def _get_words(self):
@@ -82,6 +82,25 @@ class Deck():
     def _get_all_cards(self):
         if self.cards is None:
             self.cards = self._get_words()
+
+    def is_time_to_add_words(self):
+        next_due_date = get_next_review_day()
+        seconds_to_next_review = next_due_date-datetime.now()
+        # check if the time has past 5 hours
+        return seconds_to_next_review.seconds >= 60*60*5
+
+    def check_next_active(self):
+        num=5 # add 5 words at a time
+        if not self.is_time_to_add_words():
+            return
+        selected_word = self.get_inactive_cards()
+        if len(selected_word) > num:
+            selected_word = selected_word[:num]
+
+        for word in selected_word:
+            word.toggle_active()
+            word.due_data = datetime.now()+timedelta(seconds=600)
+        self.save_words(selected_word)
     
     def save(self):
         if self.cards:
