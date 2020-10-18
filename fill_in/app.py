@@ -170,6 +170,10 @@ def study_com(args):
 def review_words(word_file):
     deck = Deck(word_file)
     sel_words = deck.get_due_cards()
+    no_words = len(sel_words)
+    # if more than 15 words, show only 10-15 words
+    if no_words > 30:
+        sel_words = sel_words[:np.random.randint(15, 29)]
     if sel_words:
         try:
             words_done = do_review(sel_words)
