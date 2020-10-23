@@ -123,6 +123,8 @@ class Deck():
         now = datetime.now()
         selected_word = [
             word for word in self.cards if word.due_date < now and word.active]
+        if len(selected_word) < 5: # if less than five,check next update
+            self.check_next_active()
         return selected_word
 
     def get_inactive_cards(self):
