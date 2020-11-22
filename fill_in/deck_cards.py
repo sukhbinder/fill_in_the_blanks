@@ -84,13 +84,13 @@ class Deck():
             self.cards = self._get_words()
 
     def is_time_to_add_words(self):
-        next_due_date = get_next_review_day()
+        next_due_date = self.get_next_review_day()
         seconds_to_next_review = next_due_date-datetime.now()
         # check if the time has past 5 hours
         return seconds_to_next_review.seconds >= 60*60*5
 
     def check_next_active(self):
-        num=5 # add 5 words at a time
+        num=2 # add 5 words at a time
         if not self.is_time_to_add_words():
             return
         selected_word = self.get_inactive_cards()

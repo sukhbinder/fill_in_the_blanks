@@ -167,13 +167,13 @@ def study_com(args):
         deck.save_words(selected_word)
 
 
-def review_words(word_file):
+def review_words(word_file, nmax=30):
     deck = Deck(word_file)
     sel_words = deck.get_due_cards()
     no_words = len(sel_words)
     # if more than 15 words, show only 10-15 words
-    if no_words > 30:
-        sel_words = sel_words[:np.random.randint(15, 29)]
+    if no_words > nmax:
+        sel_words = sel_words[:np.random.randint(int(nmax/2), nmax-1)]
     if sel_words:
         try:
             words_done = do_review(sel_words)
@@ -295,6 +295,16 @@ def test_com(args):
     deck = Deck(args.word_file)
     deck.save_words(save_selected_words)
 
+def rand_com(args):
+    files = args.files
+    n_words = args.nwords
+    nfiles = len(files) 
+    if nfiles>3:
+        nfiles = 3 
+    randfiles = np.random.choice(files, size=nfiles, replace=False)
+    for afile in randfiles:
+        review_words(afile, n_words)
+        
 
 def main():
     parser = argparse.ArgumentParser(
@@ -333,6 +343,12 @@ def main():
     test_p.add_argument("-n", "--nwords", type=int,
                         default=5, help="Words from each file")
     test_p.set_defaults(func=test_com)
+
+    rand_p = subparser.add_parser("random")
+    rand_p.add_argument("files", type=str, nargs="*")
+    rand_p.add_argument("-n", "--nwords", type=int,
+                        default=10, help="Words from each file")
+    rand_p.set_defaults(func=rand_com)
 
     args = parser.parse_args()
     # print(args)
