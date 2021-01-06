@@ -10,7 +10,7 @@ from colorama import init, Fore, Back
 import sys
 from multiprocessing import Process
 
-from fill_in.util import _say, format_timedelta, ask, notify
+from fill_in.util import _say, format_timedelta, ask, notify, confirm
 
 from fill_in.deck_cards import Deck
 
@@ -24,6 +24,7 @@ INCORRECT_RES = ["Thats Incorrect",
 
 # TODO Streaks
 # Streaks encoragement
+
 
 
 def is_time_to_add_words(fname):
@@ -125,7 +126,7 @@ def add_com(args):
     Add a single question and answer
     """
     deck = Deck(args.word_file)
-    deck.add_card(args.q, args.ans)
+    deck.add_card(args.q, args.ans, chapter=args.chapter)
     print("Question {0} added to {1}".format(args.q, args.word_file))
 
 
@@ -136,7 +137,7 @@ def _get_next_review_day(fname):
     return next_due_date
 
 
-def print_next_review_day(fname):
+def print_next_review_day(fname, chapters):
     next_due_date = Deck(fname).get_next_review_day()
     text_msg = "Next review in {}".format(
         format_timedelta(next_due_date-datetime.now()))
@@ -145,8 +146,9 @@ def print_next_review_day(fname):
         _say(text_msg)
     else:
         _say("Next Review is Now.")
-        review_words(fname)
-
+        if confirm("Do you want to review now? yes/no"):
+            review_words(fname, chapters=chapters)
+        
 
 def study_com(args):
     """
@@ -167,9 +169,13 @@ def study_com(args):
         deck.save_words(selected_word)
 
 
-def review_words(word_file, nmax=30):
+def review_words(word_file, chapters=None, nmax=30):
     deck = Deck(word_file)
-    sel_words = deck.get_due_cards()
+    if chapters is None:
+        sel_words = deck.get_due_cards()
+    else:
+        sel_words = deck.get_due_cards(chapters)
+
     no_words = len(sel_words)
     # if more than 15 words, show only 10-15 words
     if no_words > nmax:
@@ -184,19 +190,25 @@ def review_words(word_file, nmax=30):
             deck.save_words(sel_words)
             raise
 
-        print_next_review_day(word_file)
+        print_next_review_day(word_file, chapters)
     else:
         check_next_active(word_file)
-        print_next_review_day(word_file)
+        print_next_review_day(word_file, chapters)
 
 
 def review_com(args):
-    review_words(args.word_file)
 
+    if args.chapters:
+        review_words(args.word_file, chapters=args.chapters)
+    else:
+        review_words(args.word_file)
 
 def import_com(args):
     deck = Deck(args.word_file)
-    deck.import_cards(args.text_file)
+    if args.chapter:
+        deck.import_cards(args.text_file, chapter=args.chapter)
+    else:
+        deck.import_cards(args.text_file)
 
 
 def do_test_one(word):
@@ -303,7 +315,7 @@ def rand_com(args):
         nfiles = 3 
     randfiles = np.random.choice(files, size=nfiles, replace=False)
     for afile in randfiles:
-        review_words(afile, n_words)
+        review_words(afile, nmax=n_words)
         
 
 def main():
@@ -315,6 +327,7 @@ def main():
     add_p.add_argument("word_file", type=str, default="words.csv")
     add_p.add_argument("-q", type=str, help="Question ")
     add_p.add_argument("-ans", type=str, help="Answer here")
+    add_p.add_argument("-c", "--chapter", type=int, help="Chapter")
     add_p.set_defaults(func=add_com)
 
     import_p = subparser.add_parser("import")
@@ -322,10 +335,12 @@ def main():
                           help="Where you want to add questions")
     import_p.add_argument(
         "text_file", type=str, help="File with question and answers per line seperated by , use ___ as blank  ")
+    import_p.add_argument("-c", "--chapter", type=int, help="Chapter", default =None)
     import_p.set_defaults(func=import_com)
 
     review_p = subparser.add_parser("review")
     review_p.add_argument("word_file", type=str, default="words.csv")
+    review_p.add_argument("-c", "--chapters", type=int, nargs="+", help="Chapter", default =None)
     review_p.set_defaults(func=review_com)
 
     study_p = subparser.add_parser("study")
