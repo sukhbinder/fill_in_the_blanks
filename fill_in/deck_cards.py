@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import os
 import pandas as pd
-
+from fill_in.logging_utils import create_logger
 
 # THESHOLDS = [timedelta(seconds=120), timedelta(hours=3), timedelta(hours=7), timedelta(hours=24), timedelta(days=2), timedelta(
 #     days=4), timedelta(days=8), timedelta(days=16), timedelta(days=28), timedelta(days=90), timedelta(days=180)]
@@ -61,11 +61,13 @@ class Deck():
     Deck will be a file , with all the cards.
     """
     def __init__(self, fname = "words.csv"):
+        self.logger = create_logger("deck")
         self.fname = fname
         self.cards = None
         self.nextid = 0
         self.nextchapter = 1
         self._get_all_cards()
+        
 
     def _get_words(self):
         nextid = 0
@@ -100,8 +102,10 @@ class Deck():
             self.save()
 
     def _get_all_cards(self):
+        self.logger.info("Getting cards from {}".format(self.fname))
         if self.cards is None:
             self.cards = self._get_words()
+            self.logger.info("Got {} cards".format(len(self.cards)))
 
     def is_time_to_add_words(self):
         next_due_date = self.get_next_review_day()
@@ -138,6 +142,7 @@ class Deck():
                     aword.num = word.num
                     aword.update_due_date()
         self.save()
+        self.logger.info("Words saved in {}".format(self.fname))
 
     def get_due_cards(self, chapters=None):
         self._get_all_cards()
