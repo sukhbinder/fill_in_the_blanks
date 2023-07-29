@@ -145,7 +145,7 @@ def print_next_review_day(fname):
         _say(text_msg)
     else:
         _say("Next Review is Now.")
-        review_words(fname)
+        review_words(fname, nmax=6)
 
 
 def study_com(args):
