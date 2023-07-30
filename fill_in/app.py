@@ -33,11 +33,11 @@ def is_time_to_add_words(fname):
     return seconds_to_next_review.seconds >= 60*60*5
 
 
-def check_next_active(fname, num=2):
+def check_next_active(fname, num=2, chapter=-1):
     if not is_time_to_add_words(fname):
         return
     deck = Deck(fname)
-    selected_word = deck.get_inactive_cards()
+    selected_word = deck.get_inactive_cards(chapter=chapter)
     if len(selected_word) > num:
         selected_word = selected_word[:num]
 
@@ -125,7 +125,7 @@ def add_com(args):
     Add a single question and answer
     """
     deck = Deck(args.word_file)
-    deck.add_card(args.q, args.ans)
+    deck.add_card(args.q, args.ans, chapter=args.chapter)
     print("Question {0} added to {1}".format(args.q, args.word_file))
 
 
@@ -145,7 +145,7 @@ def print_next_review_day(fname):
         _say(text_msg)
     else:
         _say("Next Review is Now.")
-        review_words(fname, nmax=6)
+        review_words(fname, nmax=10)
 
 
 def study_com(args):
@@ -154,7 +154,7 @@ def study_com(args):
     """
     deck = Deck(args.word_file)
     # selected_word = [word for word in wordslist if word.active is False]
-    selected_word = deck.get_inactive_cards()
+    selected_word = deck.get_inactive_cards(args.chapter)
     if selected_word:
         for word in selected_word[:args.nwords]:
             word.toggle_active()
@@ -167,9 +167,9 @@ def study_com(args):
         deck.save_words(selected_word)
 
 
-def review_words(word_file, nmax=30):
+def review_words(word_file, nmax=30, chapter=-1):
     deck = Deck(word_file)
-    sel_words = deck.get_due_cards()
+    sel_words = deck.get_due_cards(chapter=chapter)
     no_words = len(sel_words)
     # if more than 15 words, show only 10-15 words
     if no_words > nmax:
@@ -178,7 +178,7 @@ def review_words(word_file, nmax=30):
         try:
             words_done = do_review(sel_words)
             deck.save_words(words_done)
-            check_next_active(word_file)
+            check_next_active(word_file, chapter=chapter)
         except Exception as ex:
             print(ex)
             deck.save_words(sel_words)
@@ -186,17 +186,17 @@ def review_words(word_file, nmax=30):
 
         print_next_review_day(word_file)
     else:
-        check_next_active(word_file)
+        check_next_active(word_file, chapter=chapter)
         print_next_review_day(word_file)
 
 
 def review_com(args):
-    review_words(args.word_file)
+    review_words(args.word_file, chapter=args.chapter)
 
 
 def import_com(args):
     deck = Deck(args.word_file)
-    deck.import_cards(args.text_file)
+    deck.import_cards(args.text_file, chapter=args.chapter)
 
 
 def do_test_one(word):
@@ -315,6 +315,7 @@ def main():
     add_p.add_argument("word_file", type=str, default="words.csv")
     add_p.add_argument("-q", type=str, help="Question ")
     add_p.add_argument("-ans", type=str, help="Answer here")
+    add_p.add_argument("-c", "--chapter", type=int, required=True)
     add_p.set_defaults(func=add_com)
 
     import_p = subparser.add_parser("import")
@@ -322,15 +323,18 @@ def main():
                           help="Where you want to add questions")
     import_p.add_argument(
         "text_file", type=str, help="File with question and answers per line seperated by , use ___ as blank  ")
+    import_p.add_argument("-c", "--chapter", type=int,  required=True)
     import_p.set_defaults(func=import_com)
 
     review_p = subparser.add_parser("review")
     review_p.add_argument("word_file", type=str, default="words.csv")
+    review_p.add_argument("-c", "--chapter", type=int, default=-1)
     review_p.set_defaults(func=review_com)
 
     study_p = subparser.add_parser("study")
     study_p.add_argument("word_file", type=str, default="words.csv")
     study_p.add_argument("-n", "--nwords", type=int, default=10)
+    study_p.add_argument("-c", "--chapter", type=int, default=-1)
     study_p.set_defaults(func=study_com)
 
     getno_p = subparser.add_parser("notify")

@@ -7,13 +7,14 @@ THESHOLDS = [timedelta(seconds=120), timedelta(hours=3), timedelta(hours=7), tim
     days=4), timedelta(days=8), timedelta(days=16), timedelta(days=28), timedelta(days=90), timedelta(days=180)]
 
 class Card:
-    def __init__(self, id, question, answer,  num=0, due_date=datetime.now(), active=False):
+    def __init__(self, id, question, answer,  num=0, due_date=datetime.now(), active=False, chapter=-1):
         self.id = id
         self.question = question
         self.answer = answer
         self.num = num
         self.due_date = due_date
         self.active = active
+        self.chapter = chapter
         # self.no_incorrect = 0
         # self.no_of_tries = 0
 
@@ -49,7 +50,8 @@ class Card:
         self.due_data = datetime.now()+timedelta(seconds=seconds)
 
     def __repr__(self):
-        return "{0} {1} {2} {3} {4}".format(self.id, self.question, self.num, self.active, self.due_date)
+        return "{0} {1} {2} {3} {4} {5}".format(self.id, self.question, self.num, self.active, 
+                                            self.chapter, self.due_date)
 
 
 class Deck():
@@ -62,14 +64,23 @@ class Deck():
         self.nextid = 0
         self._get_all_cards()
 
+    def _is_file_oldformat(self):
+        with open(self.fname , "r") as fin:
+            line = fin.readline()
+        return "chapter" not in line
+    
     def _get_words(self):
         nextid = 0
         if os.path.exists(self.fname):
             df = pd.read_csv(self.fname, infer_datetime_format=True,
                             parse_dates=["due_date"], index_col=0)
             df = df.sort_values(by="due_date", ascending=False)
-            wordlists = [Card(index, row.question, row.answer,  num=row.num,
-                            due_date=row.due_date, active=row.active) for index, row in df.iterrows()]
+            if self._is_file_oldformat():
+                wordlists = [Card(index, row.question, row.answer,  num=row.num,
+                                due_date=row.due_date, active=row.active, chapter=-1) for index, row in df.iterrows()]
+            else:
+                wordlists = [Card(index, row.question, row.answer,  num=row.num,
+                                due_date=row.due_date, active=row.active, chapter=row.chapter) for index, row in df.iterrows()]
             self._get_nextid(df)
         else:
             wordlists = []
@@ -89,11 +100,11 @@ class Deck():
         # check if the time has past 5 hours
         return seconds_to_next_review.seconds >= 60*60*5
 
-    def check_next_active(self):
+    def check_next_active(self, chapter=-1):
         num=2 # add 5 words at a time
         if not self.is_time_to_add_words():
             return
-        selected_word = self.get_inactive_cards()
+        selected_word = self.get_inactive_cards(chapter)
         if len(selected_word) > num:
             selected_word = selected_word[:num]
 
@@ -104,8 +115,8 @@ class Deck():
     
     def save(self):
         if self.cards:
-            df = pd.DataFrame(data=[(word.id, word.question, word.answer, word.due_date, word.num, word.active)
-                       for word in self.cards], columns=["id","question", "answer", "due_date", "num", "active"])
+            df = pd.DataFrame(data=[(word.id, word.question, word.answer, word.due_date, word.num, word.active, word.chapter)
+                       for word in self.cards], columns=["id","question", "answer", "due_date", "num", "active", "chapter"])
             df.sort_values(by="id", inplace=True)
             df.to_csv(self.fname, index=False)
             self._get_nextid(df)
@@ -118,18 +129,22 @@ class Deck():
                     aword.update_due_date()
         self.save()
 
-    def get_due_cards(self):
+    def get_due_cards(self, chapter=-1):
         self._get_all_cards()
         now = datetime.now()
-        selected_word = [
+        if chapter != -1:
+            selected_word = [
             word for word in self.cards if word.due_date < now and word.active]
+        else:
+            selected_word = [
+            word for word in self.cards if word.due_date < now and word.active and word.chapter == chapter]
         if len(selected_word) < 5: # if less than five,check next update
-            self.check_next_active()
+            self.check_next_active(chapter)
         return selected_word
 
-    def get_inactive_cards(self):
+    def get_inactive_cards(self, chapter):
         self._get_all_cards()
-        selected_word = [word for word in self.cards if not word.active]
+        selected_word = [word for word in self.cards if not word.active and word.chapter == chapter]
         return selected_word
 
     def get_active_cards(self):
@@ -143,14 +158,14 @@ class Deck():
     def __repr__(self):
         return "{} deck has {} cards".format(self.fname, len(self.cards))
     
-    def _add_card(self, question, answer, active=False):
-        card = Card(id = self.nextid, question=question, answer=answer, active=active)
+    def _add_card(self, question, answer, active=False, chapter=-1):
+        card = Card(id = self.nextid, question=question, answer=answer, active=active, chapter=chapter)
         self.nextid = self.nextid + 1
         self.cards.append(card)
 
-    def add_card(self, question, answer, active=False, save=True):
+    def add_card(self, question, answer, active=False, chapter=-1, save=True):
         self._get_all_cards()
-        self._add_card(question, answer,active)
+        self._add_card(question, answer,active, chapter)
         if save:
             self.save()
 
@@ -164,14 +179,14 @@ class Deck():
             next_due_date = datetime.now()+timedelta(seconds=-120)
         return next_due_date
     
-    def import_cards(self, afile, print_msg=True, save=True):
+    def import_cards(self, afile, chapter=-1, print_msg=True, save=True):
         self._get_all_cards()
         try:
             data = pd.read_csv(afile, header=None)
         except Exception as ex:
             raise
         for row in data.iterrows():
-            self._add_card(row[1][0].strip(), row[1][1].strip(), active=False)
+            self._add_card(row[1][0].strip(), row[1][1].strip(), active=False, chapter=chapter)
         if save:
             self.save()
         if print_msg:
