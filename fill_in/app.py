@@ -136,7 +136,7 @@ def _get_next_review_day(fname):
     return next_due_date
 
 
-def print_next_review_day(fname):
+def print_next_review_day(fname, chapter):
     next_due_date = Deck(fname).get_next_review_day()
     text_msg = "Next review in {}".format(
         format_timedelta(next_due_date-datetime.now()))
@@ -145,7 +145,7 @@ def print_next_review_day(fname):
         _say(text_msg)
     else:
         _say("Next Review is Now.")
-        review_words(fname, nmax=10)
+        review_words(fname, nmax=10, chapter=chapter)
 
 
 def study_com(args):
@@ -184,10 +184,10 @@ def review_words(word_file, nmax=30, chapter=-1):
             deck.save_words(sel_words)
             raise
 
-        print_next_review_day(word_file)
+        print_next_review_day(word_file, chapter)
     else:
         check_next_active(word_file, chapter=chapter)
-        print_next_review_day(word_file)
+        print_next_review_day(word_file, chapter)
 
 
 def review_com(args):
