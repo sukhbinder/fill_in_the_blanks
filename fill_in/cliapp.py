@@ -12,8 +12,11 @@ def parse_number_string(number_string):
     
     for part in number_string.split(","):
         if "-" in part:
-            start, end = map(int, part.split("-"))
-            result.extend(range(start, end + 1))
+            start, end = part.split("-")
+            if len(start) == 0:
+                result.append(int(part))
+            else:   
+                result.extend(range(int(start), int(end) + 1))
         else:
             result.append(int(part))
     
@@ -84,7 +87,6 @@ def main():
         fname = os.path.join(args.study_folder,subs[us])
         chaps = get_chapters(fname)
         userchaps = get_selected_chaps(chaps)
-        print(userchaps)
         if userchaps != "q":
             for chapter in userchaps:
                 app.review_words(fname, chapter=chapter)
