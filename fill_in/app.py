@@ -18,9 +18,40 @@ from fill_in.deck_cards import Deck
 init(autoreset=True)
 
 CORRECT_RES = ["Thats Fantastic Effort", "Wow thats good",
-               "Thats right. Way to go.", "Good Job.", "Excellent", "Thats correct. Good Effort"]
+               "Thats right. Way to go.", "Good Job.", "Excellent", "Thats correct. Good Effort",
+               "You're acing this life level!",
+               "Brain power: engaged and awesome!",
+               "Smarty pants in action!",
+               "Keep calm and study on.",
+               "You're one smart cookie.",
+               "You're the real MVP!",
+               "Nailed it, Einstein!",
+               "Learning ninja mode: activated!",
+               "Future genius in training!",
+               "School: you are crushing it!",
+               "Einstein would be proud!",
+               "Knowledge is your superpower!",
+               "You are a study rockstar!",
+               "Straight As and laughter!",
+               "You are writing success stories!"
+               ]
+
 INCORRECT_RES = ["Thats Incorrect",
-                 "Try Harder", "Focus", "Are you kidding me", "Focus on this"]
+                 "Try Harder", "Focus", "Are you kidding me", "Focus on this",
+                 "Oops, textbook tango again?", "Detour from brilliance lane!",
+                 "Oopsie-doodle, redo time!", "Brain break? Try later.",
+                 "Mission: find lost homework!",
+                 "Oops, forgot mind at home?",
+                 "Uh-oh, mini meltdown detected!",
+                 "Attention: Brain recharge needed!",
+                 "Alien abduction excuses? Denied!",
+                 "Can not compute, retry please!",
+                 "Lost in Daoydreamsville, huh?",
+                 "Reality check needed ASAP!",
+                 "Note to self: study!",
+                 "Lifes pop quiz, failed?",
+                 "Unplanned vacation from learning?"]
+                 
 
 # TODO Streaks
 # Streaks encoragement
