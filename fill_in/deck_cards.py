@@ -62,7 +62,9 @@ class Deck():
         self.fname = fname
         self.cards = None
         self.nextid = 0
+        self.chapters = None
         self._get_all_cards()
+        
 
     def _is_file_oldformat(self):
         with open(self.fname , "r") as fin:
@@ -78,9 +80,11 @@ class Deck():
             if self._is_file_oldformat():
                 wordlists = [Card(index, row.question, row.answer,  num=row.num,
                                 due_date=row.due_date, active=row.active, chapter=-1) for index, row in df.iterrows()]
+                self.chapters=[-1]
             else:
                 wordlists = [Card(index, row.question, row.answer,  num=row.num,
                                 due_date=row.due_date, active=row.active, chapter=row.chapter) for index, row in df.iterrows()]
+                self.chapters = df.chapter.unique().tolist()
             self._get_nextid(df)
         else:
             wordlists = []
@@ -147,9 +151,9 @@ class Deck():
         selected_word = [word for word in self.cards if not word.active and word.chapter == chapter]
         return selected_word
 
-    def get_active_cards(self):
+    def get_active_cards(self,chapter):
         self._get_all_cards()
-        selected_word = [word for word in self.cards if word.active]
+        selected_word = [word for word in self.cards if word.active and word.chapter == chapter]
         return selected_word
 
     def reload_cards(self):
