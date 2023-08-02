@@ -9,7 +9,9 @@ setup(
     author="sukhbinder",
     author_email="sukh2010@yahoo.com",
     entry_points={
-        'console_scripts': ['fillin = fill_in.app:main']
+        'console_scripts': ['fillin = fill_in.app:main',
+                            'review =  fill_in.cliapp:main',
+                            ]
     },
 
     install_requires=["pandas","colorama",
