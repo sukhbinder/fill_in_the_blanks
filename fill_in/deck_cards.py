@@ -183,18 +183,25 @@ class Deck():
             next_due_date = datetime.now()+timedelta(seconds=-120)
         return next_due_date
     
+
+    def _get_question_answer(self, line):
+        answer,question = line[::-1].strip().split(",", maxsplit=1)
+        return question[::-1],answer[::-1]
+
     def import_cards(self, afile, chapter=-1, print_msg=True, save=True):
         self._get_all_cards()
         try:
-            data = pd.read_csv(afile, header=None)
+            with open(afile, "r") as fin:
+                lines = fin.readlines()
         except Exception as ex:
             raise
-        for row in data.iterrows():
-            self._add_card(row[1][0].strip(), row[1][1].strip(), active=False, chapter=chapter)
+        for line in lines:
+            question, answer = self._get_question_answer(line.strip())
+            self._add_card(question, answer, active=False, chapter=chapter)
         if save:
             self.save()
         if print_msg:
-            print("{} Question in {} imported into {} ".format( len(data),
+            print("{} Question in {} imported into {} ".format( len(lines),
                     afile, self.fname))
 
 if __name__ == "__main__":
